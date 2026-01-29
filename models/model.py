@@ -1,32 +1,14 @@
+# models/model.py
 import torch.nn as nn
+import torchvision.models as models
 
 class TB_Detector(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv_layers = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.AdaptiveAvgPool2d((8, 8))
-        )
-        self.fc_layers = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(128 * 8 * 8, 512),
-            nn.ReLU(),
-            nn.Dropout(0.4),
-            nn.Linear(512, 1),
-            nn.Sigmoid()  # Add this line
-        )
+        # Użycie ResNet18 pretrenowanego
+        self.model = models.resnet18(pretrained=True)
+        # Zamiana ostatniej warstwy FC na 1 neuron (binarna klasyfikacja)
+        self.model.fc = nn.Linear(self.model.fc.in_features, 1)
 
     def forward(self, x):
-        x = self.conv_layers(x)
-        x = self.fc_layers(x)
-        return x
+        return self.model(x)
